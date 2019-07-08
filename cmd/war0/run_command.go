@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func offmain() {
+func main() {
 
 	sshConfig := &ssh.ClientConfig{
 		User: "bandit0",

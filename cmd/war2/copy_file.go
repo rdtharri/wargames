@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/rdtharri/wargames/sshtools"
@@ -10,10 +11,17 @@ import (
 
 func main() {
 
+	// Grab Previous Password
+	pass, err := ioutil.ReadFile("cmd/war1/bandit1_pass")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Password file open errpr: %s\n", err)
+		os.Exit(1)
+	}
+
 	sshConfig := &ssh.ClientConfig{
-		User: "bandit0",
+		User: "bandit1",
 		Auth: []ssh.AuthMethod{
-			ssh.Password("bandit0"),
+			ssh.Password(string(pass[:(len(pass) - 1)])),
 			//	sshtools.SSHAgent(),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -26,8 +34,8 @@ func main() {
 	}
 
 	scpConfig := &sshtools.SCPConfig{
-		SourcePath: "readme",
-		DestPath:   "cmd/war1/bandit1_pass",
+		SourcePath: "./-",
+		DestPath:   "cmd/war2/bandit2_pass",
 	}
 
 	fmt.Printf("Moving file from: %s to %s\n", scpConfig.SourcePath, scpConfig.DestPath)

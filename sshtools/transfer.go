@@ -1,6 +1,7 @@
 package sshtools
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net"
@@ -96,6 +97,46 @@ func (client *SSHClient) RunCommand(cmd *SSHCommand) error {
 	// Run Command
 	err = session.Run(cmd.Path)
 	return err
+}
+
+// RunCommandGetOutput on client
+func (client *SSHClient) RunCommandGetOutput(cmd *SSHCommand) (string, error) {
+	var (
+		session *ssh.Session
+		err     error
+		buff    bytes.Buffer
+	)
+
+	// Start Pipe
+	r, w, err := os.Pipe()
+	if err != nil {
+		return "", err
+	}
+
+	// Change Output to Pipe
+	old := cmd.Stdout
+	cmd.Stdout = w
+
+	// Start a new Session
+	if session, err = client.newSession(); err != nil {
+		return "", err
+	}
+	defer session.Close()
+
+	// Setup standards for command
+	if err = client.prepareCommand(session, cmd); err != nil {
+		return "", err
+	}
+
+	// Run Command
+	err = session.Run(cmd.Path)
+
+	// Close Pipe Writer, Copy buffer
+	w.Close()
+	cmd.Stdout = old
+	io.Copy(&buff, r)
+
+	return buff.String(), err
 }
 
 // Start a new session for the client

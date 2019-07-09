@@ -13,16 +13,16 @@ import (
 func main() {
 
 	// Grab Previous Password
-	pass, err := ioutil.ReadFile("cmd/war4/bandit4_pass")
+	pass, err := ioutil.ReadFile("cmd/war7/bandit7_pass")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Password file open errpr: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Password file open error: %s\n", err)
 		os.Exit(1)
 	}
 
 	sshConfig := &ssh.ClientConfig{
-		User: "bandit4",
+		User: "bandit7",
 		Auth: []ssh.AuthMethod{
-			ssh.Password(string(pass[:(len(pass) - 1)])),
+			ssh.Password(string(pass)),
 			//	sshtools.SSHAgent(),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -36,7 +36,7 @@ func main() {
 
 	// Setup Command
 	cmd := &sshtools.SSHCommand{
-		Path: "find inhere/* -type f -exec  file {} + | grep ASCII | awk -F: '{print $1}'",
+		Path: "cat data.txt | grep -i 'millionth' | awk '{print $2}'",
 		//Env:    []string{"THIS=/"},
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
@@ -45,24 +45,18 @@ func main() {
 
 	fmt.Printf("Running command: %s\n", cmd.Path)
 
-	filePath, err := client.RunCommandGetOutput(cmd)
+	passwd, err := client.RunCommandGetOutput(cmd)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "command run error: %s\n", err)
 		os.Exit(1)
 	}
+
 	fmt.Printf("Command Complete. \n")
 
-	// Grab File
-	scpConfig := &sshtools.SCPConfig{
-		SourcePath: strings.TrimRight(filePath, "\r\n"),
-		DestPath:   "cmd/war5/bandit5_pass",
+	// Write Pass to file
+	err = ioutil.WriteFile("cmd/war8/bandit8_pass", []byte(strings.TrimRight(passwd, "\r\n")), 0664)
+	if err != nil {
+		panic(err)
 	}
-
-	fmt.Printf("Moving file from: %s to %s\n", scpConfig.SourcePath, scpConfig.DestPath)
-	if err := client.GrabFile(scpConfig); err != nil {
-		fmt.Fprintf(os.Stderr, "file transfer error: %s\n", err)
-		os.Exit(1)
-	}
-	fmt.Printf("Transfer Complete.")
 
 }

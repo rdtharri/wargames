@@ -1,0 +1,7 @@
+Scan Command:
+
+nmap -A -p 31000-32000 localhost
+
+Password Command:
+
+openssl s_client -connect localhost:31790

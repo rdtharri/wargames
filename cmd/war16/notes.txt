@@ -1,0 +1,5 @@
+Command to Use:
+
+openssl s_client -connect localhost:30001
+
+Enter bandit15_pass in the prompt
